@@ -76,6 +76,41 @@ def my_k_folds(X, Y, k_folds):
     return p_map
 
 
+def my_confusion_matrix(y_actual, y_pred):
+    '''
+    Parameters:
+        y_actual: actual labels
+        y_pred: predicted labels of data
+    Returns:
+        CM: Confusion matrix for the data as a 2d numpy array
+    '''
+    if(y_actual.shape[0] != y_pred.shape[0]):
+        raise ValueError("Vectors supplied must be of same length")
+
+    # Convert the arrays to int32 to avoid indexing errors
+    y_actual = y_actual.astype(np.int32, copy=False)
+    y_pred = y_pred.astype(np.int32, copy=False)
+
+    # Minimum and maximum values in order to know the size of the confusion matrix and how to access it
+    # Problems come from classes indexing beginning with 1 and data array indexing with 0
+    max_actual = np.max(y_actual)
+    max_predicted = np.max(y_pred)
+    min_actual = np.min(y_actual)
+    min_predicted = np.min(y_pred)
+
+    N = max_actual + 1 if min_actual == 0 else max_actual
+    M = max_predicted + 1 if min_predicted == 0 else max_predicted
+
+    confusion_matrix = np.zeros((N, M))
+
+    for index in range(y_pred.shape[0]):
+        i = y_actual[index] if min_actual == 0 else y_actual[index] - 1
+        j = y_pred[index] if min_predicted == 0 else y_pred[index] - 1
+        confusion_matrix[i, j] += 1
+
+    return confusion_matrix
+
+
 def task1_mgc_cv(X, Y, CovKind, epsilon, Kfolds):
     # Input:
     #  X : N-by-D matrix of feature vectors (np.double)
@@ -130,32 +165,19 @@ def task1_mgc_cv(X, Y, CovKind, epsilon, Kfolds):
             for c in range(1, no_of_classes+1):
                 test_likelihoods[i, c-1] = multivariate_normal.pdf(test_data[i], Ms[c-1], np.squeeze(Covs[c-1])
                                                                    )
-
         test_probs = test_likelihoods * priors
+        test_preds = np.zeros((len(test_data), 1))
 
-        test_preds = np.zeros((len(test_data), 10))
         for i in range(len(test_data)):
             curr_row_vec = test_probs[i]
-            test_preds[i] = np.where(
-                np.in1d(curr_row_vec, max(curr_row_vec)))[0]
+            test_preds[i] = np.argmax(curr_row_vec, axis=0)
 
-        CM = np.zeros((no_of_classes, no_of_classes))
-        p_idx = 0
-        x_idx = 0
-        while p_idx < len(test_data):
-            if PMap[x_idx] == p:
-                i = int(Y[x_idx][0])
-                j = int(test_preds[p_idx][0])
-                CM[i-1, j-1] = CM[i-1, j-1] + 1
-                p_idx += 1
-            x_idx += 1
+        CM = my_confusion_matrix(Y[np.where(PMap == p)[0]], test_preds)
 
         scipy.io.savemat(
             f"t1_mgc_{Kfolds}cv{p}_ck{CovKind}_CM.mat", {"CM": CM})
 
-        total_cov_mat = total_cov_mat + CM / (Kfolds * len(test_data))
-
-        L = Kfolds + 1
-
-        scipy.io.savemat(
-            f"t1_mgc_{Kfolds}cv{L}_ck{CovKind}_CM.mat", {"Covs": CM})
+        total_cov_mat = total_cov_mat + (CM / (Kfolds * len(test_data)))
+    L = Kfolds + 1
+    scipy.io.savemat(f"t1_mgc_{Kfolds}cv{L}_ck{CovKind}_CM.mat", {
+                     "CM": total_cov_mat})
