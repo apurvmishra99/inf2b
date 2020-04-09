@@ -35,7 +35,7 @@ def my_cov(X):
     X_mean = my_mean(X)
     X_shifted = X - X_mean
     # Using Maximum Likelihood Estimation so divide by N
-    cov = np.matmul(X_shifted.T, X_shifted) / X.shape[0]
+    cov = (X_shifted.T @ X_shifted) / X.shape[0]
     return cov
 
 def my_corr(X):
