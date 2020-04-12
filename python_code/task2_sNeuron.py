@@ -16,7 +16,7 @@ def task2_sNeuron(W, X):
     #  W : (D+1)-by-1 vector of weights (np.double)
     # Output:
     #  Y : N-by-1 vector of output (np.double)
-    
+
     bias = W[0]
     W = np.delete(W, 0, 0)
     # W.T shape == (1 x D)

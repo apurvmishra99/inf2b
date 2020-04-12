@@ -3,16 +3,16 @@
 #
 import numpy as np
 import scipy.io
-from scipy.stats import multivariate_normal
+from numpy.linalg import det, inv
 
 
 def my_mean(matrix):
     """
     Calculates mean values in a matrix
     Parameters:
-      matrix: N-by-D data matrix
+        matrix: N-by-D data matrix
     Returns:
-      mu: D-by-1 column vector of sample mean values, where mu(i) = mean(matrix(:,i)).
+        mu: D-by-1 column vector of sample mean values, where mu(i) = mean(matrix(:,i)).
     """
 
     # Check if the matrix is not empty to make sure we do not divide by 0.
@@ -31,9 +31,9 @@ def my_cov(X):
     """
     Calculates covariance of a NxD matrix.
     Parameters:
-      matrix: N-by-D data matrix
+        matrix: N-by-D data matrix
     Returns:
-      cov: D-by-D covariance matrix.
+        cov: D-by-D covariance matrix.
     """
     X_mean = my_mean(X)
     X_shifted = X - X_mean
@@ -78,37 +78,44 @@ def my_k_folds(X, Y, k_folds):
 
 def my_confusion_matrix(y_actual, y_pred):
     '''
+    Calculates the confusion matrix given true and predicted labels.
     Parameters:
         y_actual: actual labels
         y_pred: predicted labels of data
     Returns:
         CM: Confusion matrix for the data as a 2d numpy array
     '''
-    if(y_actual.shape[0] != y_pred.shape[0]):
-        raise ValueError("Vectors supplied must be of same length")
 
     # Convert the arrays to int32 to avoid indexing errors
     y_actual = y_actual.astype(np.int32, copy=False)
     y_pred = y_pred.astype(np.int32, copy=False)
 
-    # Minimum and maximum values in order to know the size of the confusion matrix and how to access it
-    # Problems come from classes indexing beginning with 1 and data array indexing with 0
-    max_actual = np.max(y_actual)
-    max_predicted = np.max(y_pred)
-    min_actual = np.min(y_actual)
-    min_predicted = np.min(y_pred)
+    k = np.max(y_actual)
+    confusion_matrix = np.zeros((k, k))
 
-    N = max_actual + 1 if min_actual == 0 else max_actual
-    M = max_predicted + 1 if min_predicted == 0 else max_predicted
-
-    confusion_matrix = np.zeros((N, M))
-
-    for index in range(y_pred.shape[0]):
-        i = y_actual[index] if min_actual == 0 else y_actual[index] - 1
-        j = y_pred[index] if min_predicted == 0 else y_pred[index] - 1
-        confusion_matrix[i, j] += 1
+    for actual, pred in zip(y_actual, y_pred):
+        confusion_matrix[actual-1, pred-1] += 1
 
     return confusion_matrix
+
+
+def gaussian_mvn_pdf(X, mean, cov):
+    '''
+    Return posterior probabilities approximated by a Gaussian with provided mean and covariance.
+    Params:
+        X: Data to be classified (Dx1)
+        mean: Mean vector of the data (Dx1)
+        cov: Covariance matrix of the data (DxD)
+    Returns:
+        p: posterior probabilities
+    '''
+    D = det(cov)
+    inv_cov = inv(cov)
+    X_shift = X - mean
+    p_1 = 1 / (((2 * np.pi)**(len(mean)/2)) * (D**(1/2)))
+    p_2 = (-1/2) * ((X_shift.T) @ (inv_cov) @ (X_shift))
+    prior_prob = p_1 * np.exp(p_2)
+    return prior_prob
 
 
 def task1_mgc_cv(X, Y, CovKind, epsilon, Kfolds):
@@ -123,7 +130,7 @@ def task1_mgc_cv(X, Y, CovKind, epsilon, Kfolds):
     #  PMap   : N-by-1 vector of partition numbers (np.int32)
     #  Ms     : C-by-D matrix of mean vectors (np.double)
     #  Covs   : C-by-D-by-D array of covariance matrices (np.double)
-    #  CM     : C-by-C confuscipy.ion matrix (np.double)
+    #  CM     : C-by-C confusion matrix (np.double)
 
     PMap = my_k_folds(X, Y, Kfolds)
     scipy.io.savemat(f"t1_mgc_{Kfolds}cv_PMap.mat", {"PMap": PMap})
@@ -163,8 +170,8 @@ def task1_mgc_cv(X, Y, CovKind, epsilon, Kfolds):
 
         for i in range(len(test_data)):
             for c in range(1, no_of_classes+1):
-                test_likelihoods[i, c-1] = multivariate_normal.pdf(test_data[i], Ms[c-1], np.squeeze(Covs[c-1])
-                                                                   )
+                test_likelihoods[i, c-1] = gaussian_mvn_pdf(test_data[i], Ms[c-1], np.squeeze(Covs[c-1])
+                                                            )
         test_probs = test_likelihoods * priors
         test_preds = np.zeros((len(test_data), 1))
 
@@ -178,6 +185,7 @@ def task1_mgc_cv(X, Y, CovKind, epsilon, Kfolds):
             f"t1_mgc_{Kfolds}cv{p}_ck{CovKind}_CM.mat", {"CM": CM})
 
         total_cov_mat = total_cov_mat + (CM / (Kfolds * len(test_data)))
-    L = Kfolds + 1
-    scipy.io.savemat(f"t1_mgc_{Kfolds}cv{L}_ck{CovKind}_CM.mat", {
+    
+    # Final confusion matrix
+    scipy.io.savemat(f"t1_mgc_{Kfolds}cv{Kfolds+1}_ck{CovKind}_CM.mat", {
                      "CM": total_cov_mat})
