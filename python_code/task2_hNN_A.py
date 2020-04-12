@@ -1,8 +1,15 @@
 #
 # Version 0.9  (HS 09/03/2020)
 #
+import os
+import sys
+
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
+
 import numpy as np
 import scipy.io
+from task2_hNeuron import task2_hNeuron
 
 def task2_hNN_A(X):
     # Input:

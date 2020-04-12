@@ -20,6 +20,6 @@ def task2_hNeuron(W, X):
     W = np.delete(W, 0, 0)
     # W.T shape == (1 x D)
     # X.T shape == (D x N)
-    Y = (W.T @ X.T).T + bias
-    # Y shape == (D+1 x 1)
-    return step(Y)
+    Y = (W.T @ X) + bias
+    # Y shape == (1 x N)
+    return step(Y.T)

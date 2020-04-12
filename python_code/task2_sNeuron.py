@@ -21,6 +21,6 @@ def task2_sNeuron(W, X):
     W = np.delete(W, 0, 0)
     # W.T shape == (1 x D)
     # X.T shape == (D x N)
-    Y = (W.T @ X.T).T + bias
-    # Y shape == (D+1 x 1)
-    return sigmoid(Y)
+    Y = (W.T @ X) + bias
+    # Y shape == (1 x N)
+    return sigmoid(Y.T)
