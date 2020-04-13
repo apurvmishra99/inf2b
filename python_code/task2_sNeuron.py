@@ -17,10 +17,11 @@ def task2_sNeuron(W, X):
     # Output:
     #  Y : N-by-1 vector of output (np.double)
 
+    X = X.T
     bias = W[0]
     W = np.delete(W, 0, 0)
     # W.T shape == (1 x D)
-    # X.T shape == (D x N)
+    # X shape == (D x N)
     Y = (W.T @ X) + bias
     # Y shape == (1 x N)
     return sigmoid(Y.T)
