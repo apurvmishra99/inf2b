@@ -43,5 +43,5 @@ plt.legend(loc='best', fancybox=True, framealpha=0.1, handles=[
 
 # Plot, save as pdf and show result
 plt.contourf(xx, yy, data, cmap=cm.BuPu)
-plt.savefig('t2_hNN_A_region.pdf')
+plt.savefig('t2_regions_hNN_A.pdf')
 plt.show()
