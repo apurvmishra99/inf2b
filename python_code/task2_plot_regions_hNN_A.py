@@ -16,9 +16,9 @@ from matplotlib import cm
 from task2_hNN_A import task2_hNN_A
 
 # Generating points between 0 and 7 to classify:
-x_points = np.linspace(0, 7, 1000)
-y_points = np.linspace(0, 7, 1000)
-xx, yy = np.meshgrid(x_points, y_points)
+xs = np.linspace(0, 7, 1000)
+ys = np.linspace(0, 7, 1000)
+xx, yy = np.meshgrid(xs, ys)
 grid = np.vstack((xx.ravel(), yy.ravel()))
 
 
@@ -26,7 +26,7 @@ grid = np.vstack((xx.ravel(), yy.ravel()))
 data = task2_hNN_A(grid.T)
 
 # Reshape the result to fit the plt function
-data = data.reshape((x_points.shape[0], y_points.shape[0]))
+data = data.reshape((len(xs), len(ys)))
 
 # Setup the plot title, label and axis
 plt.title('Task 2.5 Plot')
