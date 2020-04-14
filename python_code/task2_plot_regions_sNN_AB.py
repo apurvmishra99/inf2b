@@ -22,7 +22,7 @@ xx, yy = np.meshgrid(xs, ys)
 grid = np.vstack((xx.ravel(), yy.ravel()))
 
 
-# Calling task2_hNN_AB on the generated points
+# Calling task2_sNN_AB on the generated points
 data = task2_sNN_AB(grid.T)
 
 # Reshape the result to fit the plt function

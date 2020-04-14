@@ -15,7 +15,7 @@ import scipy.io
 from matplotlib import cm
 from task2_hNN_AB import task2_hNN_AB
 
-# Generating points between 0 and 7 to classify:
+# Generating points between -2 and 7 to classify:
 xs = np.linspace(-2, 7, 1000)
 ys = np.linspace(-2, 7, 1000)
 xx, yy = np.meshgrid(xs, ys)
