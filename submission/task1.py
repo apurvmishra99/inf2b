@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.io
+from numpy.linalg.linalg import det, inv
 
 
 def my_mean(matrix):
@@ -167,7 +168,7 @@ def task1_3(Cov):
     # Change direction of negative evecs
     np.apply_along_axis(lambda x : x*(-1) if x[0] < 0 else x, 0, EVecs)
     # caluclate the cumulative variance
-    prop = Evals / sum(Evals)
+    prop = EVals / sum(EVals)
     Cumvar = np.cumsum(prop)
     # calculate min number of PCA dimensions required for the following percentages
     req_cov_lst = [0.70, 0.80, 0.90, 0.95]
@@ -270,4 +271,4 @@ if __name__ == "__main__":
 
     # Task 1.4
     for i in [1,2,3]:
-        task1_mgc_cv(X_vec, Y, i, 0.05, 5)
+        task1_mgc_cv(X_vec, Y_species, i, 0.05, 5)
